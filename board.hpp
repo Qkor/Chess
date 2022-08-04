@@ -32,7 +32,7 @@ public:
     void new_game();
     void make_move(string mov);
     bool move(string mov);
-    void get_position(char result[8][8]);
+    char** get_position();
 
     Position();
 };

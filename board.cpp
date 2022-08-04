@@ -344,10 +344,15 @@ void Position::new_game(){
     white_on_move = 1;
 }
 
-void Position::get_position(char result[8][8]){
-    for(int i=0;i<8;i++)
+char** Position::get_position(){
+    char** bd;
+    bd = new char*[8];
+    for(int i=0;i<8;i++){
+        bd[i]=new char[8];
         for(int j=0;j<8;j++)
-            result[i][j] = board[i][j]; 
+            bd[i][j]=board[i][j];
+    }
+    return bd;
 }
 
 Position::Position(){
