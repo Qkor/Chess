@@ -1,7 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "functions.hpp"
 #include "board.hpp"
-
 using namespace std;
 using namespace sf;
 
@@ -154,7 +153,7 @@ public:
             }
             if(event.type == Event::MouseButtonPressed){
                 if(promoting){
-                    char piece_chosen;
+                    char piece_chosen=' ';
                     if(pieces_to_choose[0].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
                         piece_chosen='Q';
                     else if (pieces_to_choose[1].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
@@ -163,10 +162,14 @@ public:
                         piece_chosen='B';
                     else if (pieces_to_choose[3].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
                         piece_chosen='N';
-                    if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
-                        piece_chosen+=32;
-                    move(piece_chosen);
-                    promoting=0;
+
+                    if(piece_chosen != ' '){
+                        if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
+                            piece_chosen+=32;
+                        move(piece_chosen);
+                        promoting=0;
+                    }
+                    
                 }
                 else
                     for(int i=0;i<8;i++)
@@ -178,7 +181,7 @@ public:
                                     dragging = 1;
                                 }
             }
-            else if(event.type == Event::MouseButtonReleased){
+            else if(event.type == Event::MouseButtonReleased && !promoting){
                 dragging=0;
                 for(int i=0;i<8;i++)
                     for(int j=0;j<8;j++)
