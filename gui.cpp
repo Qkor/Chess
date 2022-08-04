@@ -16,7 +16,12 @@ class Gui{
     Sprite chessboard;
     Sprite pieces[8][8];
 
+    bool promoting;
+    RectangleShape popup;
+    Sprite pieces_to_choose[4];
+
     bool dragging;
+    string mov;
     Vector2i piece_dragged_index;
     Vector2i mouse_pos;
     Vector2i target;
@@ -45,6 +50,16 @@ public:
             }
         
         dragging = 0;
+
+        promoting = 0;
+        popup.setSize(Vector2f(4*square_size,square_size));
+        popup.setFillColor(Color(140,130,120,230));
+        popup.setPosition(square_size*2,square_size*3.5);
+        for(int i=0;i<4;i++){
+            pieces_to_choose[i].setTexture(pieces_texture);
+            pieces_to_choose[i].setPosition(i*square_size+popup.getPosition().x,popup.getPosition().y);
+        }
+
         board = position.get_position();
         set_position();
 
@@ -100,9 +115,27 @@ public:
                 piece_dragged.setPosition(mouse_pos.x-square_size/2,mouse_pos.y-square_size/2);
                 window.draw(piece_dragged);
             }
-                
+            if(promoting)
+                display_popup();
 
             window.display();
+    }
+
+    void display_popup(){
+        
+        int adjust_color=0;
+        if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
+            adjust_color=32;
+
+        set_piece_texture(pieces_to_choose[0], 'Q'+adjust_color);
+        set_piece_texture(pieces_to_choose[1], 'R'+adjust_color);
+        set_piece_texture(pieces_to_choose[2], 'B'+adjust_color);
+        set_piece_texture(pieces_to_choose[3], 'N'+adjust_color);
+
+        window.draw(popup);
+        for(int i=0;i<4;i++)
+            window.draw(pieces_to_choose[i]);
+        
     }
 
     void handle_input(){
@@ -120,15 +153,30 @@ public:
                 }
             }
             if(event.type == Event::MouseButtonPressed){
-                for(int i=0;i<8;i++)
-                    for(int j=0;j<8;j++){
-                        if(board[i][j]!='.')
-                            if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
-                                piece_dragged_index.x = i;
-                                piece_dragged_index.y = j;
-                                dragging = 1;
-                            }
-                    }
+                if(promoting){
+                    char piece_chosen;
+                    if(pieces_to_choose[0].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                        piece_chosen='Q';
+                    else if (pieces_to_choose[1].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                        piece_chosen='R';
+                    else if (pieces_to_choose[2].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                        piece_chosen='B';
+                    else if (pieces_to_choose[3].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                        piece_chosen='N';
+                    if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
+                        piece_chosen+=32;
+                    move(piece_chosen);
+                    promoting=0;
+                }
+                else
+                    for(int i=0;i<8;i++)
+                        for(int j=0;j<8;j++)
+                            if(board[i][j]!='.')
+                                if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
+                                    piece_dragged_index.x = i;
+                                    piece_dragged_index.y = j;
+                                    dragging = 1;
+                                }
             }
             else if(event.type == Event::MouseButtonReleased){
                 dragging=0;
@@ -137,17 +185,22 @@ public:
                         if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
                             target.x = i;
                             target.y = j;
-                            move();
+                            if((board[piece_dragged_index.x][piece_dragged_index.y] == 'P' && target.x == 0)||(board[piece_dragged_index.x][piece_dragged_index.y] == 'p' && target.x == 7))
+                                promoting = 1;
+                            else
+                                move();
                         }
             }
         }
     }
-    void move(){
-        string mov="";
+    void move(char promoted_piece = ' '){
+        mov="";
         mov+=piece_dragged_index.x;
         mov+=piece_dragged_index.y;
         mov+=target.x;
         mov+=target.y;
+        if(promoting)
+            mov+=promoted_piece;
         position.move(mov);
         refresh_position();
     }
