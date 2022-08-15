@@ -75,7 +75,7 @@ bool Position::check_king_move(string mov){
     }
     if(mov[0]==line && mov[1]==4){
         if(mov[2]==line && mov[3]==6 && short_castle){
-            if(board[line][5]!='.'||board[line][7]!=rook)
+            if(board[line][6]!='.' || board[line][5]!='.' || board[line][7]!=rook)
                 return 0;
             mov[3]=5;
             if(!is_move_legal(mov))
@@ -83,7 +83,7 @@ bool Position::check_king_move(string mov){
             return 1;
         }
         else if(mov[2]==line && mov[3]==2 && long_castle){
-            if(board[line][3]!='.'||board[line][0]!=rook)
+            if(board[line][2]!='.' || board[line][3]!='.' || board[line][0]!=rook)
                 return 0;
             mov[3]=3;
             if(!is_move_legal(mov))
@@ -304,18 +304,14 @@ void Position::make_move(string mov){         //no legality check
         }
     }
 
-    if(board[mov[2]][mov[3]]=='r' && mov[0]==0){
-        if(mov[1]==0)
-            black_long_castle = 0;
-        else if (mov[1]==7)
-            black_short_castle=0;
-    }
-    if(board[mov[2]][mov[3]]=='R' && mov[0]==7){
-        if(mov[1]==0)
-            white_long_castle = 0;
-        else if (mov[1]==7)
-            white_short_castle=0;
-    }
+    if(black_long_castle && board[0][0]!='r')
+        black_long_castle = 0;
+    if(black_short_castle && board[0][7]!='r')
+        black_short_castle = 0;   
+    if(white_long_castle && board[7][0]!='R')
+        white_long_castle = 0;
+    if(white_short_castle && board[7][7]!='R')
+        white_short_castle = 0; 
 
     // en passant
 
