@@ -47,18 +47,29 @@ bool Position::check_knight_move(string mov){
         return 1;
     return 0;
 }
-bool Position::check_king_move(string mov, bool short_castle = 1, bool long_castle = 1){
+bool Position::check_king_move(string mov){
     
+    if(abs(mov[0]-mov[2]) <= 1 && abs(mov[1]-mov[3]) <= 1)
+        return 1;
+    
+    // castle  
     bool white = board[mov[0]][mov[1]] == 'K';
 
-    // castle  ////////////////////////
+    if(king_checked(white))
+        return 0;
     char rook;
     char line;
+    bool short_castle;
+    bool long_castle;
     if(white){
+        short_castle = white_short_castle;
+        long_castle = white_long_castle;
         line = 7;
         rook = 'R';
     }    
     else{
+        short_castle = black_short_castle;
+        long_castle = black_long_castle;
         line = 0;
         rook = 'r';
     }
@@ -66,19 +77,21 @@ bool Position::check_king_move(string mov, bool short_castle = 1, bool long_cast
         if(mov[2]==line && mov[3]==6 && short_castle){
             if(board[line][5]!='.'||board[line][7]!=rook)
                 return 0;
+            mov[3]=5;
+            if(!is_move_legal(mov))
+                return 0;
             return 1;
         }
         else if(mov[2]==line && mov[3]==2 && long_castle){
             if(board[line][3]!='.'||board[line][0]!=rook)
                 return 0;
+            mov[3]=3;
+            if(!is_move_legal(mov))
+                return 0;
             return 1;
         }
     }
-    ///////////////////////////////////
-    
-    if(abs(mov[0]-mov[2])>1 || abs(mov[1]-mov[3])>1)
-        return 0;
-    return 1;
+    return 0;
 }
 bool Position::check_pawn_move(string mov){
     
@@ -119,8 +132,6 @@ bool Position::check_pawn_move(string mov){
 }
 bool Position::check_move(string mov){
     
-    
-    
     char fig = board[mov[0]][mov[1]];
     char target = board[mov[2]][mov[3]];
     bool white = fig<91;
@@ -147,10 +158,7 @@ bool Position::check_move(string mov){
             return check_knight_move(mov);
             break;
         case 'k':
-            if(white)
-                return check_king_move(mov, white_short_castle, white_long_castle);
-            else
-                return check_king_move(mov, black_short_castle, black_long_castle);
+            return check_king_move(mov);
             break;
         case 'p':
             return check_pawn_move(mov); 
@@ -199,7 +207,11 @@ bool Position::king_checked(bool white=1){
                 mov+=j;
                 mov+=king_x;
                 mov+=king_y;
-                if(check_move(mov))
+                if(board[i][j]=='k' || board[i][j]=='K'){
+                    if(abs(mov[0]-mov[2]) <= 1 && abs(mov[1]-mov[3]) <= 1)
+                        return 1;
+                }
+                else if(check_move(mov))
                     return 1;
             }
     return 0;
@@ -263,25 +275,46 @@ void Position::make_move(string mov){         //no legality check
 
     // castles
 
-    if(board[mov[2]][mov[3]]=='k'){                         // black
-        if(mov[0]==0&&mov[1]==4&&mov[2]==0&&mov[3]==6){         // 0-0
+    if(board[mov[2]][mov[3]]=='k' && mov[0]==0 && mov[1]==4){                         // black
+        if(mov[2]==0 && mov[3]==6){         // 0-0
             board[0][5]='r';
             board[0][7]='.';
+            black_long_castle = 0;
+            black_short_castle = 0;
         }
-        else if(mov[0]==0&&mov[1]==4&&mov[2]==0&&mov[3]==2){    // 0-0-0
+        else if(mov[2]==0 && mov[3]==2){    // 0-0-0
             board[0][3]='r';
             board[0][0]='.';
+            black_long_castle = 0;
+            black_short_castle = 0;
         }
     }
-    if(board[mov[2]][mov[3]]=='K'){                         // white
-        if(mov[0]==7&&mov[1]==4&&mov[2]==7&&mov[3]==6){         // 0-0
+    else if(board[mov[2]][mov[3]]=='K' && mov[0]==7&&mov[1]==4){                         // white
+        if(mov[2]==7 && mov[3]==6){         // 0-0
             board[7][5]='R';
             board[7][7]='.';
+            white_long_castle = 0;
+            white_short_castle = 0;
         }
-        else if(mov[0]==7&&mov[1]==4&&mov[2]==7&&mov[3]==2){    // 0-0-0
+        else if(mov[2]==7 && mov[3]==2){    // 0-0-0
             board[7][3]='R';
             board[7][0]='.';
+            white_long_castle = 0;
+            white_short_castle = 0;
         }
+    }
+
+    if(board[mov[2]][mov[3]]=='r' && mov[0]==0){
+        if(mov[1]==0)
+            black_long_castle = 0;
+        else if (mov[1]==7)
+            black_short_castle=0;
+    }
+    if(board[mov[2]][mov[3]]=='R' && mov[0]==7){
+        if(mov[1]==0)
+            white_long_castle = 0;
+        else if (mov[1]==7)
+            white_short_castle=0;
     }
 
     // en passant

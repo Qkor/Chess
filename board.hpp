@@ -17,7 +17,7 @@ class Position{
     bool check_rook_move(string mov);
     bool check_queen_move(string mov);
     bool check_knight_move(string mov);
-    bool check_king_move(string mov, bool short_castle, bool long_castle);
+    bool check_king_move(string mov);
     bool check_pawn_move(string mov);
     bool check_move(string mov);
 
