@@ -4,7 +4,7 @@
 using namespace std;
 
 
-bool Position::check_bishop_move(char board[8][8], string mov){
+bool Position::check_bishop_move(string mov){
     if(abs(mov[0]-mov[2])!=abs(mov[1]-mov[3]))
         return 0;
     char j = min(mov[0],mov[2]) + 1;
@@ -22,7 +22,7 @@ bool Position::check_bishop_move(char board[8][8], string mov){
         }
     return 1;
 }
-bool Position::check_rook_move(char board[8][8], string mov){
+bool Position::check_rook_move(string mov){
     if(mov[0]==mov[2]){
         for(char i = min(mov[1],mov[3]) + 1; i < max(mov[1],mov[3]); i++)
             if(board[mov[0]][i]!='.')
@@ -37,17 +37,17 @@ bool Position::check_rook_move(char board[8][8], string mov){
     }
     return 0;
 }
-bool Position::check_queen_move(char board[8][8], string mov){
-    return check_bishop_move(board, mov) || check_rook_move(board, mov);
+bool Position::check_queen_move(string mov){
+    return check_bishop_move(mov) || check_rook_move(mov);
 }
-bool Position::check_knight_move(char board[8][8], string mov){
+bool Position::check_knight_move(string mov){
     if(abs(mov[0]-mov[2])==2&&abs(mov[1]-mov[3])==1)
         return 1;
     if(abs(mov[0]-mov[2])==1&&abs(mov[1]-mov[3])==2)
         return 1;
     return 0;
 }
-bool Position::check_king_move(char board[8][8], string mov, bool short_castle = 1, bool long_castle = 1){
+bool Position::check_king_move(string mov, bool short_castle = 1, bool long_castle = 1){
     
     bool white = board[mov[0]][mov[1]] == 'K';
 
@@ -80,7 +80,7 @@ bool Position::check_king_move(char board[8][8], string mov, bool short_castle =
         return 0;
     return 1;
 }
-bool Position::check_pawn_move(char board[8][8], string mov, string en_passant="-"){
+bool Position::check_pawn_move(string mov){
     
     bool white = board[mov[0]][mov[1]] == 'P';
 
@@ -117,16 +117,12 @@ bool Position::check_pawn_move(char board[8][8], string mov, string en_passant="
         return 0;
     }
 }
-bool Position::check_move(Position position, string mov){
+bool Position::check_move(string mov){
     
-    for(int i=0;i<4;i++)
-        if(mov[i]<0||mov[i]>7)
-            return 0;
-    if(mov[0]==mov[2]&&mov[1]==mov[3])
-        return 0;
     
-    char fig = position.board[mov[0]][mov[1]];
-    char target = position.board[mov[2]][mov[3]];
+    
+    char fig = board[mov[0]][mov[1]];
+    char target = board[mov[2]][mov[3]];
     bool white = fig<91;
     
     if(!white && target>='a' && target<='z')
@@ -139,31 +135,31 @@ bool Position::check_move(Position position, string mov){
 
     switch(fig){
         case 'b':
-            return check_bishop_move(position.board, mov);
+            return check_bishop_move(mov);
             break;
         case 'r':
-            return check_rook_move(position.board, mov);
+            return check_rook_move(mov);
             break;
         case 'q':
-            return check_queen_move(position.board, mov);
+            return check_queen_move(mov);
             break;
         case 'n':
-            return check_knight_move(position.board, mov);
+            return check_knight_move(mov);
             break;
         case 'k':
             if(white)
-                return check_king_move(position.board, mov, position.white_short_castle, position.white_long_castle);
+                return check_king_move(mov, white_short_castle, white_long_castle);
             else
-                return check_king_move(position.board, mov, position.black_short_castle, position.black_long_castle);
+                return check_king_move(mov, black_short_castle, black_long_castle);
             break;
         case 'p':
-            return check_pawn_move(position.board, mov, position.en_passant); 
+            return check_pawn_move(mov); 
             break;     
     }
     
     return 0;
 }
-bool Position::king_checked(Position position, bool white=1){
+bool Position::king_checked(bool white=1){
     
     char king;
     char king_x;
@@ -187,7 +183,7 @@ bool Position::king_checked(Position position, bool white=1){
         if(king_found)
             break;
         for(char j=0;j<8;j++)
-            if(position.board[i][j]==king){
+            if(board[i][j]==king){
                 king_x = i;
                 king_y = j;
                 king_found = 1;
@@ -197,57 +193,64 @@ bool Position::king_checked(Position position, bool white=1){
     
     for(char i=0;i<8;i++)
         for(char j=0;j<8;j++)
-            if(position.board[i][j] >= figures_start && position.board[i][j] <= figures_end){
+            if(board[i][j] >= figures_start && board[i][j] <= figures_end){
                 string mov = "";
                 mov+=i;
                 mov+=j;
                 mov+=king_x;
                 mov+=king_y;
-                if(check_move(position, mov))
+                if(check_move(mov))
                     return 1;
             }
     return 0;
 }
 
-bool Position::is_position_legal(Position position){
+bool Position::is_position_legal(){
     for(int i=0;i<8;i++)
-        if(position.board[0][i]=='p'||position.board[0][i]=='P'||position.board[7][i]=='p'||position.board[7][i]=='P')
+        if(board[0][i]=='p'||board[0][i]=='P'||board[7][i]=='p'|board[7][i]=='P')
             return 0;
     
     char white_kings = 0;
     char black_kings = 0;
     for(char i=0;i<8;i++)
         for(char j=0;j<8;j++){
-            if(position.board[i][j]=='K')
+            if(board[i][j]=='K')
                 white_kings++;
-            else if (position.board[i][j]=='k')
+            else if (board[i][j]=='k')
                 black_kings++;
         }
     if(white_kings != 1 || black_kings != 1)
         return 0;
 
-    if(king_checked(position,1) && !position.white_on_move)
+    if(king_checked(1) && !white_on_move)
         return 0;
-    if(king_checked(position,0) && position.white_on_move)
+    if(king_checked(0) && white_on_move)
         return 0;
 
     return 1;
 }
-bool Position::is_move_legal(Position position, string mov){
-    if(position.board[mov[0]][mov[1]]=='.')
+bool Position::is_move_legal(string mov){
+    
+    for(int i=0;i<4;i++)
+        if(mov[i]<0||mov[i]>7)
+            return 0;
+    if(mov[0]==mov[2]&&mov[1]==mov[3])
         return 0;
-    bool white_figure = position.board[mov[0]][mov[1]] < 91;
-    if(white_figure && !position.white_on_move)
+    
+    if(board[mov[0]][mov[1]]=='.')
         return 0;
-    if(!white_figure && position.white_on_move)
+    bool white_figure = board[mov[0]][mov[1]] < 91;
+    if(white_figure && !white_on_move)
         return 0;
-    if(!check_move(position,mov))
+    if(!white_figure && white_on_move)
+        return 0;
+    if(!check_move(mov))
         return 0;
 
     Position new_position;
-    new_position = position;
+    new_position = *this;
     new_position.make_move(mov);
-    return is_position_legal(new_position);
+    return new_position.is_position_legal();
 }
 
 void Position::make_move(string mov){         //no legality check
@@ -305,7 +308,7 @@ void Position::make_move(string mov){         //no legality check
     white_on_move = !white_on_move;
 }
 bool Position::move(string mov){
-   if(is_move_legal(*this,mov)){
+   if(is_move_legal(mov)){
         make_move(mov);
         return 1;
    }
