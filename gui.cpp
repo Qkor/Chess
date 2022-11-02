@@ -1,6 +1,10 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <vector>
 #include "functions.hpp"
 #include "board.hpp"
+#include "game.hpp"
+#include "menu.hpp"
 using namespace std;
 using namespace sf;
 
@@ -8,9 +12,10 @@ class Gui{
 
     int board_size;
     float square_size;
+    int offset;
     Texture board_texture;
     Texture pieces_texture;
-    Position position;
+    Game game;
     char** board;
     Sprite chessboard;
     Sprite pieces[8][8];
@@ -29,10 +34,16 @@ class Gui{
     RenderWindow window;
     Event event;
 
+    MenuBar menu;
+    MenuList menu_list;
+    bool show_menu_list = 0;
+    bool setup_mode = 0;
+    char piece_to_set='.';
 
-public:
+  public:
 
     Gui(){
+        offset = 30;
         board_size = 600;
         square_size = float(board_size)/8;
 
@@ -40,12 +51,13 @@ public:
         pieces_texture.loadFromFile("pieces.png");
 
         chessboard.setTexture(board_texture);
+        chessboard.setPosition(0,offset);
         piece_dragged.setTexture(pieces_texture);
 
         for(int i=0;i<8;i++)
             for(int j=0;j<8;j++){
                 pieces[i][j].setTexture(pieces_texture);
-                pieces[i][j].setPosition(square_size*j,square_size*i);
+                pieces[i][j].setPosition(square_size*j,square_size*i+offset);
             }
         
         dragging = 0;
@@ -53,17 +65,29 @@ public:
         promoting = 0;
         popup.setSize(Vector2f(4*square_size,square_size));
         popup.setFillColor(Color(140,130,120,230));
-        popup.setPosition(square_size*2,square_size*3.5);
+        popup.setPosition(square_size*2,square_size*3.5+offset);
         for(int i=0;i<4;i++){
             pieces_to_choose[i].setTexture(pieces_texture);
             pieces_to_choose[i].setPosition(i*square_size+popup.getPosition().x,popup.getPosition().y);
         }
 
-        board = position.get_position();
+        board = game.get_position();
         set_position();
 
-        window.create(VideoMode(board_size, board_size), "Chess", Style::Titlebar | Style::Close);
+        window.create(VideoMode(board_size, board_size + offset), "Chess", Style::Titlebar | Style::Close);
         window.setFramerateLimit(60);
+
+        menu.add_button(new Button(&window, "new game"));
+        menu.add_button(new Button(&window, "undo move"));
+        menu.add_button(new Button(&window, "setup position"));
+        
+        menu_list.add_button(new Button(&window, "king"));
+        menu_list.add_button(new Button(&window, "queen"));
+        menu_list.add_button(new Button(&window, "rook"));
+        menu_list.add_button(new Button(&window, "bishop"));
+        menu_list.add_button(new Button(&window, "knight"));
+        menu_list.add_button(new Button(&window, "pawn"));
+        menu_list.add_button(new Button(&window, "clear board"));
     }
 
     ~Gui(){
@@ -96,12 +120,12 @@ public:
     }
 
     void refresh_position(){
-        board = position.get_position();
+        board = game.get_position();
         set_position();
     }
 
     void display_board(){
-         window.clear();
+         window.clear(Color(50,50,50));
             window.draw(chessboard);
             for(int i=0;i<8;i++)
                 for(int j=0;j<8;j++){
@@ -116,6 +140,9 @@ public:
             }
             if(promoting)
                 display_popup();
+            menu.display();
+            if(show_menu_list)
+                menu_list.display();
 
             window.display();
     }
@@ -147,41 +174,76 @@ public:
 
             if(event.type == Event::KeyPressed){
                 if(event.key.code==Keyboard::N){
-                    position.new_game();
+                    game.new_game();
+                    refresh_position();
+                }
+                if(event.key.code==Keyboard::Left){
+                    game.move_back();
+                    refresh_position();
+                }
+                if(event.key.code==Keyboard::Right){
+                    game.move_forward();
                     refresh_position();
                 }
             }
-            if(event.type == Event::MouseButtonPressed){
-                if(promoting){
-                    char piece_chosen=' ';
-                    if(pieces_to_choose[0].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
-                        piece_chosen='Q';
-                    else if (pieces_to_choose[1].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
-                        piece_chosen='R';
-                    else if (pieces_to_choose[2].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
-                        piece_chosen='B';
-                    else if (pieces_to_choose[3].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
-                        piece_chosen='N';
+            if(event.type == Event::MouseButtonPressed && !show_menu_list){
 
-                    if(piece_chosen != ' '){
-                        if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
-                            piece_chosen+=32;
-                        move(piece_chosen);
-                        promoting=0;
-                    }
-                    
+                if(event.mouseButton.button == sf::Mouse::Right && setup_mode){
+                    show_menu_list = true;
+                    menu_list.move(mouse_pos);
                 }
-                else
-                    for(int i=0;i<8;i++)
-                        for(int j=0;j<8;j++)
-                            if(board[i][j]!='.')
-                                if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
-                                    piece_dragged_index.x = i;
-                                    piece_dragged_index.y = j;
-                                    dragging = 1;
-                                }
+
+                else if(event.mouseButton.button == sf::Mouse::Left){
+
+                    if(promoting){
+                        char piece_chosen=' ';
+                        if(pieces_to_choose[0].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                            piece_chosen='Q';
+                        else if (pieces_to_choose[1].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                            piece_chosen='R';
+                        else if (pieces_to_choose[2].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                            piece_chosen='B';
+                        else if (pieces_to_choose[3].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y))
+                            piece_chosen='N';
+
+                        if(piece_chosen != ' '){
+                            if(board[piece_dragged_index.x][piece_dragged_index.y]=='p')
+                                piece_chosen+=32;
+                            move(piece_chosen);
+                            promoting=0;
+                        }
+                    }
+                    else{
+                        if(setup_mode){
+                            for(int i=0;i<8;i++)
+                                for(int j=0;j<8;j++)
+                                    if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
+                                        if(board[i][j] == piece_to_set)
+                                            game.set_piece(piece_to_set+32, i, j);
+                                        else if(board[i][j] == piece_to_set+32)
+                                            game.set_piece('.',i,j);
+                                        else
+                                            game.set_piece(piece_to_set, i, j);
+                                        refresh_position();
+                                        break;
+                                    }
+                        }
+                        else{
+                            for(int i=0;i<8;i++)
+                                for(int j=0;j<8;j++)
+                                    if(board[i][j]!='.')
+                                        if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
+                                            piece_dragged_index.x = i;
+                                            piece_dragged_index.y = j;
+                                            dragging = 1;
+                                        }
+                        }
+                    }
+                        
+                }
+                
             }
-            else if(event.type == Event::MouseButtonReleased && !promoting){
+            else if(dragging && event.type == Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left &&!promoting){
                 dragging=0;
                 for(int i=0;i<8;i++)
                     for(int j=0;j<8;j++)
@@ -194,6 +256,41 @@ public:
                                 move();
                         }
             }
+            else if(event.type == Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left &&!promoting){
+                std::vector<Button*> buttons = menu.get_buttons();
+                if(buttons[0]->isHovered()){
+                    game.new_game();
+                    setup_mode = 0;
+                    refresh_position();
+                }
+                else if(buttons[1]->isHovered()){
+                    game.move_back();
+                    refresh_position();
+                }
+                else if(buttons[2]->isHovered()){
+                    setup_mode = !setup_mode;
+                }
+                if(show_menu_list){
+                    std::vector<Button*> buttons = menu_list.get_buttons();
+                    if(buttons[0]->isHovered())
+                        piece_to_set = 'K';
+                    if(buttons[1]->isHovered())
+                        piece_to_set = 'Q';
+                    if(buttons[2]->isHovered())
+                        piece_to_set = 'R';
+                    if(buttons[3]->isHovered())
+                        piece_to_set = 'B';
+                    if(buttons[4]->isHovered())
+                        piece_to_set = 'N';
+                    if(buttons[5]->isHovered())
+                        piece_to_set = 'P';
+                    if(buttons[6]->isHovered()){
+                        game.clear_board();
+                        refresh_position();
+                    }
+                    show_menu_list = false;
+                }
+            }
         }
     }
     void move(char promoted_piece = ' '){
@@ -204,7 +301,7 @@ public:
         mov+=target.y;
         if(promoting)
             mov+=promoted_piece;
-        position.move(mov);
+        game.add_move(mov);
         refresh_position();
     }
 
@@ -214,6 +311,7 @@ public:
             display_board();
         }
     }
+
 
 };
 

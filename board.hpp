@@ -28,6 +28,7 @@ public:
 
     bool king_checked(bool white);
     void clear_board();
+    void set_piece(char piece, char x, char y);
     void fen2position(string fen);
     void new_game();
     void make_move(string mov);

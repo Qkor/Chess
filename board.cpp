@@ -273,6 +273,15 @@ void Position::make_move(string mov){         //no legality check
         board[mov[2]][mov[3]]=board[mov[0]][mov[1]];
     board[mov[0]][mov[1]] = '.';
 
+    if(board[mov[2]][mov[3]]=='k'){
+        black_long_castle = 0;
+        black_short_castle = 0;
+    }
+    if(board[mov[2]][mov[3]]=='K'){
+        white_long_castle = 0;
+        white_short_castle = 0;
+    }
+
     // castles
 
     if(board[mov[2]][mov[3]]=='k' && mov[0]==0 && mov[1]==4){                         // black
@@ -348,6 +357,9 @@ void Position::clear_board(){
     for(int i=0;i<8;i++)
         for(int j=0;j<8;j++)
             board[i][j]='.';
+}
+void Position::set_piece(char piece, char x, char y){
+    board[x][y] = piece;
 }
 void Position::fen2position(string fen){
     clear_board();
