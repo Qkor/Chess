@@ -1,8 +1,12 @@
 #include "board.hpp"
 #include <iostream>
+#include <string>
 
 using namespace std;
 
+Position::Position(){
+    start_position();
+}
 
 bool Position::check_bishop_move(string mov){
     if(abs(mov[0]-mov[2])!=abs(mov[1]-mov[3]))
@@ -357,6 +361,10 @@ void Position::clear_board(){
     for(int i=0;i<8;i++)
         for(int j=0;j<8;j++)
             board[i][j]='.';
+    white_short_castle=false;
+    white_long_castle=false;
+    black_short_castle=false;
+    black_long_castle=false;
 }
 void Position::set_piece(char piece, char x, char y){
     board[x][y] = piece;
@@ -376,16 +384,70 @@ void Position::fen2position(string fen){
         }
     }
     f++;
-    //properties(fen.substr(f));
+    white_on_move = fen[f]=='w';
+    f++;f++;
+    if(fen[f]=='K'){
+        white_short_castle=true;
+        f++;
+    }
+    if(fen[f]=='Q'){
+        white_long_castle=true;
+        f++;
+    }
+    if(fen[f]=='k'){
+        black_short_castle=true;
+        f++;
+    }
+    if(fen[f]=='q'){
+        black_long_castle=true;
+        f++;
+    }
+    if(fen[f]=='-')
+        f++;
+    f++;
+    set_en_passant(fen.substr(f,2));
 }
-void Position::new_game(){
+string Position::position2fen(){
+    string fen="";
+    for(int i=0;i<8;i++){
+        char x = '0';
+        for(int j=0;j<8;j++){
+            if(board[i][j]=='.')
+                x++;
+            else if(x>'0'){
+                fen+=x;
+                fen+=board[i][j];
+                x='0';
+            }
+            else
+                fen+=board[i][j];
+        }
+        if(x>'0'){
+            fen+=x;
+            x='0';
+        }
+        if(i!=7)
+            fen+='/';
+    } 
+    fen+=' ';
+    fen+= is_white_on_move()?'w':'b';
+    fen+=' ';
+    if(white_short_castle)
+        fen+='K';
+    if(white_long_castle)
+        fen+='Q';
+    if(black_short_castle)
+        fen+='k';
+    if(black_long_castle)
+        fen+='q';
+    if(!black_short_castle&&!black_long_castle&&!white_long_castle&&!white_short_castle)
+        fen+='-';
+    fen+=' ';
+    fen+=en_passant;
+    return fen;
+}
+void Position::start_position(){
     fen2position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    white_short_castle = 1;
-    white_long_castle = 1;
-    black_short_castle = 1;
-    black_long_castle = 1;
-    en_passant = "-";
-    white_on_move = 1;
 }
 
 char** Position::get_position(){
@@ -399,6 +461,37 @@ char** Position::get_position(){
     return bd;
 }
 
-Position::Position(){
-    new_game();
+bool Position::is_white_on_move(){
+    return white_on_move;
+}
+void Position::switch_side_to_move(){
+    white_on_move = !white_on_move;
+}
+
+bool Position::get_white_long_castle(){
+    return white_long_castle;
+}
+bool Position::get_white_short_castle(){
+    return white_short_castle;
+}
+bool Position::get_black_long_castle(){
+    return black_long_castle;
+}
+bool Position::get_black_short_castle(){
+    return black_short_castle;
+}
+void Position::switch_white_long_castle(){
+    white_long_castle = !white_long_castle;
+}
+void Position::switch_white_short_castle(){
+    white_short_castle = !white_short_castle;
+}
+void Position::switch_black_long_castle(){
+    black_long_castle = !black_long_castle;
+}
+void Position::switch_black_short_castle(){
+    black_short_castle = !black_short_castle;
+}
+void Position::set_en_passant(string square){
+    en_passant = square;
 }

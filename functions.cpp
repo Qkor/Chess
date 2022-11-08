@@ -21,5 +21,3 @@ std::string lan2coord(std::string in){
 
     return out;
 }
-
-void defaultCallback(){}

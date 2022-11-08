@@ -11,17 +11,8 @@ Game::Game(){
     current_move = first_move;
 }
 
-char** Game::get_position(){
-    return chessboard.get_position();
-}
-
-void Game::go_to_start(){
-    current_move = first_move;
-    chessboard.new_game();
-}
-
 void Game::move(Move* mov){
-    chessboard.move(mov->coord);
+    Position::move(mov->coord);
     current_move = mov;
 }
 
@@ -32,10 +23,10 @@ void Game::add_move(string coords){
             return;
         }
     }
-    if(chessboard.is_move_legal(coords)){
+    if(is_move_legal(coords)){
         Move *new_move = new Move(current_move, coords);
         current_move->next.push_back(new_move);
-        chessboard.move(coords);
+        Position::move(coords);
         current_move = new_move;
     }
 }
@@ -46,7 +37,8 @@ void Game::move_back(){
         previous_moves.push(current_move->previous);
         current_move = current_move->previous;
     }
-    chessboard.new_game();
+    fen2position(starting_position);
+    current_move = first_move;
     while(!previous_moves.empty()){
         move(previous_moves.top());
         previous_moves.pop();
@@ -69,13 +61,19 @@ void Game::delete_variation(Move* move){
         
 }
 void Game::new_game(){
-    go_to_start();
+    current_move = first_move;
     delete_variation(first_move);
+    start_position();
+    starting_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 }
 
-void Game::clear_board(){
-    chessboard.clear_board();
-}
 void Game::set_piece(char piece, char x, char y){
-    chessboard.set_piece(piece, x, y);
+    board[x][y] = piece;
+    set_position();
+}
+
+void Game::set_position(){
+    current_move = first_move;
+    delete_variation(first_move);
+    starting_position = position2fen();
 }

@@ -51,3 +51,9 @@ void Button::display(){
 void Button::call(){
     callback();
 }
+void Button::set_text(std::string text){
+    this->text.setString(text);
+}
+void Button::set_color(Color color){
+    background.setFillColor(color);
+}

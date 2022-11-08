@@ -4,7 +4,7 @@
 using namespace std;
 
 class Position{
-
+protected:
     char board[8][8];
     bool white_on_move;
     bool white_short_castle;
@@ -30,10 +30,22 @@ public:
     void clear_board();
     void set_piece(char piece, char x, char y);
     void fen2position(string fen);
-    void new_game();
+    string position2fen();
+    void start_position();
     void make_move(string mov);
     bool move(string mov);
     char** get_position();
-
+    
+    bool is_white_on_move();
+    void switch_side_to_move();
+    bool get_white_long_castle();
+    bool get_white_short_castle();
+    bool get_black_long_castle();
+    bool get_black_short_castle();
+    void switch_white_long_castle();
+    void switch_white_short_castle();
+    void switch_black_long_castle();
+    void switch_black_short_castle();
+    void set_en_passant(string square);
     Position();
 };

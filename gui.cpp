@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <vector>
 #include "functions.hpp"
@@ -35,10 +37,13 @@ class Gui{
     Event event;
 
     MenuBar menu;
+    MenuBar setup_menu;
     MenuList menu_list;
+    MenuList castle_menu;
+    bool show_castle_menu = 0;
     bool show_menu_list = 0;
     bool setup_mode = 0;
-    char piece_to_set='.';
+    char piece_to_set='P';
 
   public:
 
@@ -77,17 +82,29 @@ class Gui{
         window.create(VideoMode(board_size, board_size + offset), "Chess", Style::Titlebar | Style::Close);
         window.setFramerateLimit(60);
 
-        menu.add_button(new Button(&window, "new game"));
-        menu.add_button(new Button(&window, "undo move"));
-        menu.add_button(new Button(&window, "setup position"));
+        menu.add_button(new Button(&window, "New game"));
+        menu.add_button(new Button(&window, "Undo move"));
+        menu.add_button(new Button(&window, "Setup position"));
         
-        menu_list.add_button(new Button(&window, "king"));
-        menu_list.add_button(new Button(&window, "queen"));
-        menu_list.add_button(new Button(&window, "rook"));
-        menu_list.add_button(new Button(&window, "bishop"));
-        menu_list.add_button(new Button(&window, "knight"));
-        menu_list.add_button(new Button(&window, "pawn"));
-        menu_list.add_button(new Button(&window, "clear board"));
+        menu_list.add_button(new Button(&window, "King"));
+        menu_list.add_button(new Button(&window, "Queen"));
+        menu_list.add_button(new Button(&window, "Rook"));
+        menu_list.add_button(new Button(&window, "Bishop"));
+        menu_list.add_button(new Button(&window, "Knight"));
+        menu_list.add_button(new Button(&window, "Pawn"));
+        menu_list.add_button(new Button(&window, "Clear board"));
+
+        setup_menu.add_button(new Button(&window, "White to move"));
+        setup_menu.add_button(new Button(&window, "Castles"));
+        setup_menu.add_button(new Button(&window, "En passant"));
+        setup_menu.add_button(new Button(&window, "Confirm"));
+
+
+        castle_menu.add_button(new Button(&window, "white 0-0"));
+        castle_menu.add_button(new Button(&window, "white 0-0-0"));
+        castle_menu.add_button(new Button(&window, "black 0-0"));
+        castle_menu.add_button(new Button(&window, "black 0-0-0"));
+        castle_menu.move(Vector2i(setup_menu.get_buttons()[0]->getOffsetX(),30));
     }
 
     ~Gui(){
@@ -140,9 +157,23 @@ class Gui{
             }
             if(promoting)
                 display_popup();
-            menu.display();
-            if(show_menu_list)
+            if(setup_mode)
+                setup_menu.display();
+            else
+                menu.display();
+            if(show_menu_list){
+                show_castle_menu = false;
                 menu_list.display();
+            } 
+            if(show_castle_menu){
+                vector<Button*> buttons = castle_menu.get_buttons();
+                buttons[0]->set_color(game.get_white_short_castle()?Color(0,100,0):Color(100,0,0)); 
+                buttons[1]->set_color(game.get_white_long_castle()?Color(0,100,0):Color(100,0,0));
+                buttons[2]->set_color(game.get_black_short_castle()?Color(0,100,0):Color(100,0,0));
+                buttons[3]->set_color(game.get_black_long_castle()?Color(0,100,0):Color(100,0,0));
+                show_menu_list = false;
+                castle_menu.display();
+            }
 
             window.display();
     }
@@ -186,14 +217,14 @@ class Gui{
                     refresh_position();
                 }
             }
-            if(event.type == Event::MouseButtonPressed && !show_menu_list){
+            if(event.type == Event::MouseButtonPressed){
 
                 if(event.mouseButton.button == sf::Mouse::Right && setup_mode){
                     show_menu_list = true;
                     menu_list.move(mouse_pos);
                 }
 
-                else if(event.mouseButton.button == sf::Mouse::Left){
+                else if(event.mouseButton.button == sf::Mouse::Left && !show_menu_list && !show_castle_menu){
 
                     if(promoting){
                         char piece_chosen=' ';
@@ -257,19 +288,48 @@ class Gui{
                         }
             }
             else if(event.type == Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left &&!promoting){
-                std::vector<Button*> buttons = menu.get_buttons();
-                if(buttons[0]->isHovered()){
-                    game.new_game();
-                    setup_mode = 0;
-                    refresh_position();
+                std::vector<Button*> buttons; 
+                if(setup_mode){
+                    buttons = setup_menu.get_buttons();
+                    buttons[0]->set_text(game.is_white_on_move()?"White to move":"Black to move");
+                    if(buttons[0]->isHovered()){
+                        game.switch_side_to_move();
+                        buttons[0]->set_text(game.is_white_on_move()?"White to move":"Black to move");
+                    }
+                    if(buttons[1]->isHovered()){
+                        show_castle_menu = true;
+                    }
+                    if(buttons[2]->isHovered()){
+                       
+                    }
+                    if(buttons[3]->isHovered()){
+                        game.set_position();
+                        setup_mode = 0;
+                        show_castle_menu = 0;
+                        window.setTitle("Chess");
+                    }
                 }
-                else if(buttons[1]->isHovered()){
-                    game.move_back();
-                    refresh_position();
+                    
+                else{
+                    buttons = menu.get_buttons();
+                    if(buttons[0]->isHovered()){
+                        game.new_game();
+                        setup_mode = 0;
+                        window.setTitle("Chess");
+                        refresh_position();
+                    }
+                    else if(buttons[1]->isHovered()){
+                        game.move_back();
+                        refresh_position();
+                    }
+                    else if(buttons[2]->isHovered()){
+                        setup_mode = true;
+                        buttons = setup_menu.get_buttons();
+                        buttons[0]->set_text(game.is_white_on_move()?"White to move":"Black to move");
+                        window.setTitle("Setup position");
+                    }
                 }
-                else if(buttons[2]->isHovered()){
-                    setup_mode = !setup_mode;
-                }
+                    
                 if(show_menu_list){
                     std::vector<Button*> buttons = menu_list.get_buttons();
                     if(buttons[0]->isHovered())
@@ -289,6 +349,23 @@ class Gui{
                         refresh_position();
                     }
                     show_menu_list = false;
+                }
+                else if(show_castle_menu){
+                    std::vector<Button*> buttons = castle_menu.get_buttons();
+                    if(buttons[0]->isHovered()){
+                        game.switch_white_short_castle();
+                    }
+                    if(buttons[1]->isHovered()){
+                        game.switch_white_long_castle();
+                    }
+                    if(buttons[2]->isHovered()){
+                        game.switch_black_short_castle();
+                    }
+                    if(buttons[3]->isHovered()){
+                        game.switch_black_long_castle();
+                    }
+                    if(!setup_menu.get_buttons()[1]->isHovered())
+                        show_castle_menu = false;
                 }
             }
         }
