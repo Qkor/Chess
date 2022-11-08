@@ -121,6 +121,10 @@ void Gui::display_board(){
             show_castle_menu = false;
             menu_list.display();
         } 
+        if(setting_ep)
+            setup_menu.get_buttons()[2]->set_color(Color(0,100,0));
+        else
+            setup_menu.get_buttons()[2]->set_color(Color(50,50,50));
         if(show_castle_menu){
             vector<Button*> buttons = castle_menu.get_buttons();
             buttons[0]->set_color(game.get_white_short_castle()?Color(0,100,0):Color(100,0,0)); 
@@ -233,7 +237,6 @@ void Gui::handle_input(){
                                     }
                     }
                 }
-                    
             }
             
         }

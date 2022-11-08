@@ -9,7 +9,7 @@ Button::Button(RenderWindow* window, std::string txt, void (*callback)(), unsign
     text.setCharacterSize(font_size);
     text.setString(txt);
     background.setSize(Vector2f(text.getLocalBounds().width+font_size,font_size*1.25));
-    background.setFillColor(Color(50,50,50));
+    color = Color(50,50,50);
 }
 void Button::resetPosition(){
     text.setPosition(0,0);
@@ -44,9 +44,9 @@ bool Button::isHovered(){
 void Button::display(){
     draw();
     if(isHovered())
-        background.setFillColor(Color(100,100,100));
+        background.setFillColor(Color(color.r+50,color.g+50,color.b+50));
     else 
-        background.setFillColor(Color(50,50,50));
+        background.setFillColor(color);
 }
 void Button::call(){
     callback();
@@ -55,5 +55,5 @@ void Button::set_text(std::string text){
     this->text.setString(text);
 }
 void Button::set_color(Color color){
-    background.setFillColor(color);
+    this->color = color;
 }

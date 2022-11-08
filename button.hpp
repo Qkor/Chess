@@ -7,6 +7,7 @@ using namespace sf;
 class Button{
   Text text;
   Font font;
+  Color color;
   int font_size;
   RectangleShape background;
   RenderWindow* window;
