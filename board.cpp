@@ -493,5 +493,7 @@ void Position::switch_black_short_castle(){
     black_short_castle = !black_short_castle;
 }
 void Position::set_en_passant(string square){
+    if(square[0]=='-')
+        en_passant="-";
     en_passant = square;
 }

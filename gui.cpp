@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -43,6 +42,7 @@ class Gui{
     bool show_castle_menu = 0;
     bool show_menu_list = 0;
     bool setup_mode = 0;
+    bool setting_ep = 0;
     char piece_to_set='P';
 
   public:
@@ -246,10 +246,17 @@ class Gui{
                     }
                     else{
                         if(setup_mode){
-                            for(int i=0;i<8;i++)
-                                for(int j=0;j<8;j++)
+                            for(char i=0;i<8;i++)
+                                for(char j=0;j<8;j++)
                                     if(pieces[i][j].getGlobalBounds().contains(mouse_pos.x,mouse_pos.y)){
-                                        if(board[i][j] == piece_to_set)
+                                        if(setting_ep){
+                                            string square = "";
+                                            square += 97 + j;
+                                            square += 56 - i;                                            
+                                            game.set_en_passant(square);
+                                            setting_ep = false;
+                                        }
+                                        else if(board[i][j] == piece_to_set)
                                             game.set_piece(piece_to_set+32, i, j);
                                         else if(board[i][j] == piece_to_set+32)
                                             game.set_piece('.',i,j);
@@ -300,7 +307,7 @@ class Gui{
                         show_castle_menu = true;
                     }
                     if(buttons[2]->isHovered()){
-                       
+                        setting_ep = true;
                     }
                     if(buttons[3]->isHovered()){
                         game.set_position();
