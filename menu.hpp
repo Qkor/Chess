@@ -6,7 +6,8 @@ class Menu{
   protected:
     std::vector<Button*> buttons;
   public:
-    void add_button(Button* btn);
+    ~Menu();
+    virtual void add_button(Button* btn) = 0;
     void display();
     void work();
     std::vector<Button*> get_buttons();

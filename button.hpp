@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
-#include "functions.hpp"
 
 using namespace sf;
 
@@ -15,6 +14,7 @@ class Button{
 
 public:
   Button(RenderWindow* window, std::string txt, void (*callback)()=[](){}, unsigned int font_size=24);
+  ~Button();
   void resetPosition();
   int getOffsetX();
   int getHeihth();

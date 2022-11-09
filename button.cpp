@@ -11,6 +11,11 @@ Button::Button(RenderWindow* window, std::string txt, void (*callback)(), unsign
     background.setSize(Vector2f(text.getLocalBounds().width+font_size,font_size*1.25));
     color = Color(50,50,50);
 }
+
+Button::~Button(){
+    callback = NULL;
+}
+
 void Button::resetPosition(){
     text.setPosition(0,0);
 }

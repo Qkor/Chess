@@ -2,7 +2,6 @@
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <vector>
-#include "functions.hpp"
 #include "board.hpp"
 #include "game.hpp"
 #include "menu.hpp"

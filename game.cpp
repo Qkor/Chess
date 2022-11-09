@@ -1,5 +1,4 @@
 #include "game.hpp"
-#include "functions.hpp"
 #include "board.hpp"
 #include "move.hpp"
 #include <cstddef>
@@ -9,6 +8,12 @@
 Game::Game(){
     first_move = new Move(NULL, "");
     current_move = first_move;
+}
+Game::~Game(){
+    current_move = NULL;
+    delete_variation(first_move);
+    delete current_move;
+    delete first_move;
 }
 
 void Game::move(Move* mov){

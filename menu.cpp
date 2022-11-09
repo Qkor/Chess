@@ -1,8 +1,9 @@
 #include "menu.hpp"
 
-void Menu::add_button(Button* btn){
-    buttons.push_back(btn);
+Menu::~Menu(){
+   //has to delete array of pointers
 }
+
 void Menu::display(){
     for(auto b: buttons){
         b->display();
