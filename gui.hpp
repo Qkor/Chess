@@ -2,7 +2,7 @@
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <vector>
-#include "board.hpp"
+#include "position.hpp"
 #include "game.hpp"
 #include "menu.hpp"
 using namespace std;

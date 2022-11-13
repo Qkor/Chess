@@ -1,6 +1,9 @@
-#include "board.hpp"
+#include "position.hpp"
+#include "move.hpp"
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <vector>
 
 using namespace std;
 
@@ -497,3 +500,31 @@ void Position::set_en_passant(string square){
         en_passant="-";
     en_passant = square;
 }
+
+/*
+vector<tuple<char,char,char>> Position::find_all_pieces(){
+    vector<tuple<char,char,char>> pieces;
+    char start,end;
+    if(is_white_on_move()){
+        start='A';
+        end='Z';
+    }
+    else{
+        start='a';
+        end='z';
+    }
+    for(char i=0;i<8;i++)
+        for(char j=0;i<8;i++)
+            if(board[i][j]>=start && board[i][j]<=end)
+                pieces.push_back(make_tuple(board[i][j],i,j));
+    return pieces;
+}
+
+vector<string> Position::find_all_moves(){
+    vector<tuple<char,char,char>> pieces = find_all_pieces();
+    for(auto piece: pieces){
+        switch(get<0>(piece)){
+            
+        }
+    } 
+}*/

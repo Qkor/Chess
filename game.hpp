@@ -3,7 +3,7 @@
 #include <map>
 #include <stack>
 #include <string>
-#include "board.hpp"
+#include "position.hpp"
 #include "move.hpp"
 
 

@@ -1,5 +1,5 @@
 #include "game.hpp"
-#include "board.hpp"
+#include "position.hpp"
 #include "move.hpp"
 #include <cstddef>
 #include <cstdio>

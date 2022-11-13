@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+#include <vector>
 using namespace std;
 
 class Position{
@@ -47,5 +47,9 @@ public:
     void switch_black_long_castle();
     void switch_black_short_castle();
     void set_en_passant(string square);
+    
+    vector<tuple<char,char,char>> find_all_pieces();
+    vector<string> find_all_moves();
+    
     Position();
 };
