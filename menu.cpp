@@ -1,7 +1,9 @@
 #include "menu.hpp"
 
 Menu::~Menu(){
-   //has to delete array of pointers
+    for(Button* btn: buttons)
+        delete btn;
+    buttons.clear();
 }
 
 void Menu::display(){
